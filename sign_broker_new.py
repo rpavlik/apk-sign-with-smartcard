@@ -20,12 +20,19 @@ from apk_pkcs11_tools import (
 
 # when importing into the smartcard, these are the key "label"
 APK_KEY_ALIAS = "signer_s1"
-UPLOAD_KEY_ALIAS = "upload_u1"
+# UPLOAD_KEY_ALIAS = "upload_u1"
+# TODO change this once the upload key is fixed
+# UPLOAD_KEY_ALIAS = "old_upload"
+UPLOAD_KEY_ALIAS = "signer_s2"
 
 
 def _sign_apk(apksigner, apk_release_dir: Path, env: dict[str, str]):
-    unsigned_path = apk_release_dir / "installable_runtime_broker-release-unsigned.apk"
-    out_path = apk_release_dir / "installable_runtime_broker-release-signed.apk"
+    unsigned_path = (
+        apk_release_dir / "installable_runtime_broker-official-release-unsigned.apk"
+    )
+    out_path = (
+        apk_release_dir / "installable_runtime_broker-official-release-signed.apk"
+    )
     assert unsigned_path.exists()
 
     cmd = get_apksigner_sign_args_start(apksigner)
@@ -43,9 +50,11 @@ def _sign_apk(apksigner, apk_release_dir: Path, env: dict[str, str]):
 
 
 def _sign_bundle(apksigner, bundle_release_dir: Path, env: dict[str, str]):
-    unsigned_path = bundle_release_dir / "installable_runtime_broker-release.aab"
+    unsigned_path = (
+        bundle_release_dir / "installable_runtime_broker-official-release.aab"
+    )
     out_path = (
-        bundle_release_dir / "installable_runtime_broker-release-signed.aab"
+        bundle_release_dir / "installable_runtime_broker-official-release-signed.aab"
     )
     assert unsigned_path.exists()
 
@@ -70,12 +79,12 @@ def _sign(repo_root: str):
     env = get_pin_environment_dict()
     apksigner = get_apksigner_path()
 
-    # needs ./gradlew installable_runtime_broker:assembleRelease -Ptrademark
-    apk_release_dir = outputs_dir / "apk" / "release"
+    # needs ./gradlew installable_runtime_broker:assembleOfficialRelease
+    apk_release_dir = outputs_dir / "apk" / "official" / "release"
     _sign_apk(apksigner, apk_release_dir, env)
 
-    # needs ./gradlew installable_runtime_broker:bundleRelease -Ptrademark
-    bundle_release_dir = outputs_dir / "bundle" / "release"
+    # needs ./gradlew installable_runtime_broker:bundleOfficialRelease -Ptrademark
+    bundle_release_dir = outputs_dir / "bundle" / "officialRelease"
     _sign_bundle(apksigner, bundle_release_dir, env)
 
 
