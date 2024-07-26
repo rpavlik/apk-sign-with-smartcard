@@ -25,7 +25,6 @@ from apk_pkcs11_tools import (
 APK_KEY_ALIAS = "signer_s1"
 
 # Key for AAB (Bundle upload key)
-# UPLOAD_KEY_ALIAS = "signer_s2"
 UPLOAD_KEY_ALIAS = "upload_u1"
 
 
