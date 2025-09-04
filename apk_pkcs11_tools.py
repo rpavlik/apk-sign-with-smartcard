@@ -1,4 +1,4 @@
-# Copyright 2023, Collabora, Ltd.
+# Copyright 2023-2025, Collabora, Ltd.
 #
 # SPDX-License-Identifier: GPL-3.0-only
 #
@@ -7,24 +7,34 @@
 
 from pathlib import Path
 import getpass
+import re
 
 _PKCS_CFG = Path(__file__).parent.resolve() / "pkcs11_java_opensc.cfg"
 
 _PASS_ENV_VAR = "PKCS11_PIN"
 
-BUILD_TOOLS_VERSION = "33.0.1"
+
+_BUILD_TOOLS_DECOMP = re.compile(r"([0-9]+)\.([0-9]+)\.([0-9]+)")
 
 
-def get_apksigner_path(build_tools_version=BUILD_TOOLS_VERSION):
+def get_apksigner_path():
     """Return the default installation path of apksigner on Linux."""
-    return (
-        Path("~").expanduser()
-        / "Android"
-        / "Sdk"
-        / "build-tools"
-        / build_tools_version
-        / "apksigner"
-    )
+    base = Path("~").expanduser() / "Android" / "Sdk" / "build-tools"
+
+    versions = []
+    for d in base.iterdir():
+        m = _BUILD_TOOLS_DECOMP.match(d.name)
+        if not m:
+            continue
+
+        versions.append((m.group(1), m.group(2), m.group(3)))
+
+    max_ver_tuple = max(versions)
+
+    max_ver = ".".join(max_ver_tuple)
+    print("Using build tools version", max_ver)
+
+    return base / max_ver / "apksigner"
 
 
 def get_pin_environment_dict() -> dict[str, str]:
@@ -33,7 +43,7 @@ def get_pin_environment_dict() -> dict[str, str]:
     return {_PASS_ENV_VAR: pin}
 
 
-def get_apksigner_sign_args_start(apksigner, min_sdk=24, max_sdk=33):
+def get_apksigner_sign_args_start(apksigner, min_sdk=24, max_sdk=36):
     """Get initial args for an apksigner sign call using PKCS#11."""
     # Make sure Java can find our pkcs11 module
     library_path = ";".join(
@@ -89,3 +99,8 @@ def get_apksigner_sign_args_end(
         str(out_apk),
         str(unsigned_apk),
     ]
+
+
+if __name__ == "__main__":
+    signer = get_apksigner_path()
+    print(signer)
